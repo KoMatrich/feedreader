@@ -1,0 +1,50 @@
+#pragma once
+#include <netinet/in.h>
+#include <string_view>
+#include <openssl/ssl.h>
+
+#include "parsedLink.h"
+#include "pasedResponse.h"
+
+using namespace std;
+
+class WebScraper {
+private:
+	SSL_CTX* ctx;
+
+	int _run(ParsedLink link);
+public:
+	WebScraper(const string_view certAddr,const string_view certFile);
+	~WebScraper()
+	{
+		SSL_CTX_free(ctx);
+	}
+	/// <summary>
+	/// Runs scraper for given link
+	/// </summary>
+	int run(const ParsedLink &link,const size_t tries);
+	
+	PasedResponse response;
+
+	enum Error {
+		OK,
+
+		CONNECTION_CLOSED,
+		
+		SEND_RETRY_ERROR,
+		RECEIVE_RETRY_ERROR,
+		
+		CRITICAL_ERROR,/// used only for comparation
+
+		BAD_RESPONSE,
+
+		CONNECTION_ERROR,
+
+		SSL_ERROR,
+
+		SEND_ERROR,
+		RECEIVE_ERROR,
+
+		HEADER_ERROR
+	};
+};
