@@ -1,7 +1,8 @@
 #include "pasedResponse.h"
 
 #include <cstring>
-#include <util.h>
+
+#include "util.h"
 
 void PasedResponse::append(const char* buffer,const size_t buffer_len)
 {
@@ -42,6 +43,20 @@ uint PasedResponse::getCode() {
 	}
 }
 
+const string PasedResponse::get(const char* optionName)
+{
+	string prefix = "\r\n";
+	prefix += optionName;
+	prefix += ": ";
+	
+	size_t redirectIndex = rawStorage.find(prefix) + prefix.length();
+	if (redirectIndex == string::npos) return "";
+	size_t redirectEndIndex = rawStorage.find("\r\n", redirectIndex);
+		
+	string data = rawStorage.substr(redirectIndex, redirectEndIndex - redirectIndex);
+	return data;
+}
+
 size_t PasedResponse::loadedDataLenght(){
 	size_t endOfHeader = headerLenght();
 	if (endOfHeader == string::npos) return 0;
@@ -50,14 +65,12 @@ size_t PasedResponse::loadedDataLenght(){
 
 size_t PasedResponse::headerDataLenght()
 {
-	const char* prefix = "Content-Length: ";
-	size_t contentLenghtIndex = rawStorage.find(prefix)+strlen(prefix);
-	if (contentLenghtIndex == string::npos) return string::npos;
-	size_t contentLenghtEndIndex = rawStorage.find("\r\n", contentLenghtIndex);
-	string contentS = rawStorage.substr(contentLenghtIndex, contentLenghtEndIndex-contentLenghtIndex);
+	string data = get("Content-Length");
+	if (data == "") return string::npos;
+		
 	try
 	{
-		return stoi(contentS);
+		return stoi(data.c_str());
 	}
 	catch (const std::exception&)
 	{

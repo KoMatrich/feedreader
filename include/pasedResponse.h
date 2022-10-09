@@ -26,14 +26,18 @@ public:
 	/// Returns pointer to whole request
 	/// </summary>
 	const char* raw() {
-		return rawStorage.data();
+		return rawStorage.c_str();
 	}
 	/// <summary>
 	/// Returns pointer to data of request
 	/// </summary>
 	const char* dat() {
-		return rawStorage.data() + headerLenght();
+		return rawStorage.c_str() + headerLenght();
 	}
+	/// <summary>
+	/// Returns data from header
+	/// </summary>
+	const string get(const char* optionName);
 	/// <summary>
 	/// Returns the lenght of data loaded from the response
 	/// </summary>
@@ -52,6 +56,9 @@ public:
 	/// string::npos if header is not valid
 	/// </returns>
 	size_t headerLenght();
+	void clear() {
+		rawStorage.clear();
+	}
 private:
 	string rawStorage{};
 };

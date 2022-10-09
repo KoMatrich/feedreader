@@ -22,7 +22,7 @@ public:
 	/// <summary>
 	/// Runs scraper for given link
 	/// </summary>
-	int run(const ParsedLink &link,const size_t tries);
+	int run(ParsedLink link, const size_t tries = 3, const size_t redirect_limit = 3);
 	
 	PasedResponse response;
 
@@ -33,9 +33,13 @@ public:
 		
 		SEND_RETRY_ERROR,
 		RECEIVE_RETRY_ERROR,
+
+		RESPONSE_ERROR,
+
+		REDIRECT,
 		
 		CRITICAL_ERROR,/// used only for comparation
-
+		
 		BAD_RESPONSE,
 
 		CONNECTION_ERROR,
@@ -45,6 +49,8 @@ public:
 		SEND_ERROR,
 		RECEIVE_ERROR,
 
-		HEADER_ERROR
+		HEADER_ERROR,
+		
+		REDIRECT_LIMIT
 	};
 };

@@ -20,7 +20,7 @@ file(GLOB_RECURSE hdrs "${PROJECT_SOURCE_DIR}/include/*.h")
 include_directories(${PROJECT_SOURCE_DIR} ${LIBXML2_INCLUDE_DIR})
 
 # Add source to this project's executable.
-add_executable ("${PROJECT_NAME}" ${srcs} ${hdrs} "src/parsedLink.cpp" "src/pasedResponse.cpp" "include/pasedResponse.h"  "include/util.h" )
+add_executable ("${PROJECT_NAME}" ${srcs} ${hdrs})
 
 # Link libs
 target_link_libraries("${PROJECT_NAME}" PRIVATE ${LIBXML2_LIBRARIES})

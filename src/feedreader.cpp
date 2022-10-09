@@ -7,6 +7,7 @@
 #include "webScraper.h"
 #include <iostream>
 #include <util.h>
+#include <vector>
 
 int main(int argc, char* argv[])
 {
@@ -16,37 +17,34 @@ int main(int argc, char* argv[])
 	//get certificates
 	if(OPENSSL_init_ssl(OPENSSL_INIT_SSL_DEFAULT, nullptr)<0)
 	{
-		R_ERROR("Error: OPENSSL_init_ssl failed");
+		Logger::Print(RError, "OPENSSL_init_ssl failed");
 		exit(EXIT_FAILURE);
 	}
-	D_PRINT("%s", OpenSSL_version(OPENSSL_VERSION));
+	
+	Logger::Print(Debug, "%s", OpenSSL_version(OPENSSL_VERSION));
 	
 	//inicialize web scraper
 	WebScraper WScraper(oParser.certAddr,oParser.certFile);
 	
+	vector<string> links;
+	
 	//get links from file
 	if (oParser.WFlag) {
-	
+		links.push_back(oParser.feedPath.data());
+	}else {
+		
 	}
 	
 	//run web scraper
 	do {
-		string SLink;
-		if (oParser.WFlag) {
-			SLink = oParser.feedPath;
-		} else {
-			
-		}
+		string SLink = links.back();
+		links.pop_back();
 		
 		ParsedLink link{ SLink };
-		int return_code = WScraper.run(link, 3);
-		if (return_code >= WebScraper::Error::CRITICAL_ERROR) {
-			exit(EXIT_FAILURE);
-		}
-		else if (return_code == WebScraper::Error::OK) {
-			std::cout << WScraper.response.raw();
-		}
-	} while (!oParser.WFlag);
+		int return_code = WScraper.run(link,3,3);
+		std::cout << WScraper.response.raw();
+		if (return_code != WebScraper::Error::OK) continue;
+	} while (!links.empty());
 	
     exit(EXIT_SUCCESS);
 }

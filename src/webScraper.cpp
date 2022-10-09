@@ -4,9 +4,9 @@
 
 #include "util.h"
 
+//wrapper class for BIO and SSL connection
 class Wrapper {
 public:
-	Wrapper() {};
 	int setup(bool secured, SSL_CTX* ctx, string connection) {
 		this->connection = connection;
 
@@ -19,7 +19,7 @@ public:
 
 		if (bio == nullptr)
 		{
-			R_ERROR("Failed to create BIO object for '%s'", getCon());
+			Logger::Print(RError,"Failed to create BIO object for '%s'", getCon());
 			return WebScraper::Error::CONNECTION_ERROR;
 		}
 
@@ -31,7 +31,7 @@ public:
 
 		//check connection
 		if (BIO_do_connect(bio) <= 0) {
-			R_ERROR("Durning connection check to '%s'", getCon());
+			Logger::Print(RError,"Durning connection check to '%s'", getCon());
 			return WebScraper::Error::CONNECTION_ERROR;
 		}
 
@@ -39,13 +39,13 @@ public:
 		if (secured) {
 			//certificate handshake
 			if (BIO_do_handshake(bio) != 1) {
-				R_ERROR("Error establishing SSL connection to: '%s'", getCon());
+				Logger::Print(RError,"Error establishing SSL connection to: '%s'", getCon());
 				return WebScraper::Error::SSL_ERROR;
 			}
 
 			//verify certificate
 			if (SSL_get_verify_result(ssl) != X509_V_OK) {
-				R_ERROR("Error cetificate verification failed for: '%s'", getCon());
+				Logger::Print(RError,"Error cetificate verification failed for: '%s'", getCon());
 				return WebScraper::Error::SSL_ERROR;
 			}
 		}
@@ -80,40 +80,64 @@ WebScraper::WebScraper(string_view certAddr, string_view certFile) {
 		ctx = SSL_CTX_new(SSLv23_client_method());
 		if(!ctx)
 		{
-			R_ERROR("Error: SSL_CTX_new failed");
+			Logger::Print(RError,"Error: SSL_CTX_new failed");
 			exit(EXIT_FAILURE);
 		}
 		
 		if (SSL_CTX_set_default_verify_paths(ctx) != 1) {
-			R_ERROR("Error: SSL_CTX_set_default_verify_paths failed");
+			Logger::Print(RError,"Error: SSL_CTX_set_default_verify_paths failed");
 			exit(EXIT_FAILURE);
 		}
 	}
 	if (!certAddr.empty()) {
 		if (SSL_CTX_load_verify_locations(ctx, nullptr, certAddr.data()) != 1) {
-			R_ERROR("Error loading certification folder");
+			Logger::Print(RError,"Error loading certification folder");
 			exit(EXIT_FAILURE);
 		}
 	}
 	if (!certFile.empty()) {
 		if (SSL_CTX_load_verify_locations(ctx, nullptr, certFile.data()) != 1) {
-			R_ERROR("Error loading certification file");
+			Logger::Print(RError,"Error loading certification file");
 			exit(EXIT_FAILURE);
 		}
 	}
 };
 
-int WebScraper::run(const ParsedLink &link, const size_t tries) {
+int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_limit) {
 	int return_code;
-	for (uint i = 0; i < tries; i++) {
+	uint redirect_counter = 0;
+	
+	for (uint i = 0; i <= tries;) {
+		//clear response
+		response.clear();
 		//run web scrapper
 		return_code = _run(link);
 		//exit from loop when done
 		if (return_code == Error::OK)break;
 		//check for critical errors
 		if (return_code > Error::CRITICAL_ERROR)break;
-		//clear response
-		response = PasedResponse();
+		//check for redirect
+		if (return_code == Error::REDIRECT) {
+			//check for redirect limit
+			if (redirect_counter++ >= redirect_limit) {
+				Logger::Print(RError, "Redirect limit reached for: '%s'", string{ link }.c_str());
+				return_code = Error::REDIRECT_LIMIT;
+				break;
+			}
+			string location = response.get("Location");
+			link = ParsedLink{ location };
+			if (link.host.empty()) {
+				Logger::Print(RError, "Failed to parse redirect location");
+				return Error::RESPONSE_ERROR;
+			}
+			Logger::Print(Runtime, "Redirecting to '%s' [%d]", location.c_str(), redirect_counter);
+			continue;
+		}
+		//failed to retrive data
+		i++;
+		if (i < tries) {
+			Logger::Print(Runtime, "Failed to retrive data [%d], retrying ...", i);
+		}
 	}
 	return return_code;
 }
@@ -123,29 +147,34 @@ int WebScraper::_run(ParsedLink link) {
 	link.port = link.port == "" ? (secured ? ":443" : ":80") : link.port;
 
 	Wrapper wrap;
-	R_PRINT("Connecting to '%s'", link.host.data());
-	int return_code = wrap.setup(secured, ctx, {link.host + link.port});
+	Logger::Print(Runtime,"Connecting to '%s'", link.getLink().c_str());
+	int return_code = wrap.setup(secured, ctx, link.getLink());
 	if (return_code != 0) {
 		return return_code;
 	}
 
-	R_PRINT("Connected and sending GET request");
 	//send request
-	string request{};
-	request += "GET " + link.path + link.query + " HTTP/1.1\r\n";
-	request += "Host: " + link.host + "\r\n";
-	request += "\r\n";
-	if (BIO_write(wrap.getBio(), request.data(), request.length()) < 0) {
+	Logger::Print(Runtime,"Connected sending GET request:");
+	string request, line;
+	line = "GET " + link.path + link.query + " HTTP/1.1";
+	Logger::Print(Runtime, "\t%s", line.c_str());
+	request += line + "\r\n";
+	line = "Host: " + link.host;
+	Logger::Print(Runtime, "\t%s", line.c_str());
+	request += line + "\r\n";
+	request += "\r\n\r\n";
+	
+	if (BIO_write(wrap.getBio(), request.c_str(), request.length()) < 0) {
 		if (BIO_should_retry(wrap.getBio())) {
-			R_ERROR("While sending request to: '%s'", wrap.getCon());
+			Logger::Print(RError,"While sending request");
 			return Error::SEND_RETRY_ERROR;
 		}else {
-			R_ERROR("Failed to send request to '%s'", wrap.getCon());
+			Logger::Print(RError,"Failed to send request");
 			return Error::SEND_ERROR;
 		}
 	}
 	
-	R_PRINT("GET request sent, waiting for response");
+	Logger::Print(Runtime,"GET request sent, waiting for response");
 	//receive response
 	const uint max_len = 1024;
 	int len = max_len;
@@ -159,19 +188,37 @@ int WebScraper::_run(ParsedLink link) {
 		response.append(buffer, len);
 		if (!headerLoaded) {
 			if (response.isHeaderValid()) {
-				if (int r = response.getCode() != 200) {
-					R_ERROR("Bad response [%d] from % s", r, wrap.getCon());
+				//Logger::Print(Debug, "Response:\n%s", response.raw());
+				int r = response.getCode();
+				switch (r)
+				{
+				case 301:
+				case 302:
+				case 303:
+				case 307:
+				case 308:
+					Logger::Print(Runtime, "Revived redirect response [%d]", r);
+					return Error::REDIRECT;
+					break;
+				case 200:
+					Logger::Print(Runtime, "Revived response [%d]", r);
+					break;
+				case -1:
+					Logger::Print(RError, "Failed to parse response header");
+					return Error::RESPONSE_ERROR;
+				default:
+					Logger::Print(RError, "Revived bad response [%d]", r);
 					return Error::BAD_RESPONSE;
-				}else {
-					R_PRINT("Response [%d] from %s", r, wrap.getCon());
 				}
+				
+				Logger::Print(Runtime, "Fetching rest of data");
 				
 				headerLoaded = true;
 				maxDataLenght = response.headerDataLenght();
 			}
 		}
 
-		if (maxDataLenght == response.loadedDataLenght()) {
+		if (maxDataLenght <= response.loadedDataLenght()) {
 			//all data has been loaded
 			break;
 		}
@@ -180,20 +227,20 @@ int WebScraper::_run(ParsedLink link) {
 	//check recived data
 	if (len <= 0){
 		if (len == 0) {
-			R_ERROR("Connection to '%s' closed", wrap.getCon());
+			Logger::Print(RError,"Connection closed");
 			return Error::CONNECTION_CLOSED;
 		}else if(BIO_should_retry(wrap.getBio())) {
-			R_ERROR("Something went wrong while reciving data from '%s'", wrap.getCon());
+			Logger::Print(RError,"Something went wrong while reciving data");
 			return Error::RECEIVE_RETRY_ERROR;
 		}else {
-			R_ERROR("Failed to recive data from '%s'", wrap.getCon());
+			Logger::Print(RError,"Failed to recive data");
 			return Error::RECEIVE_ERROR;
 		}
 	}
 	
-	R_PRINT("Response recived");
-	D_PRINT("Header valid:      %s", B(response.isHeaderValid()));
-	D_PRINT("Loaded data lenght:%5lu/%lu", response.loadedDataLenght(), response.headerDataLenght());
+	Logger::Print(Runtime,"Data recived");
+	Logger::Print(Debug,"Header valid:      %s", Bool2String(response.isHeaderValid()));
+	Logger::Print(Debug,"Loaded data lenght:%5lu/%lu", response.loadedDataLenght(), response.headerDataLenght());
 	
 	return Error::OK;
 }
