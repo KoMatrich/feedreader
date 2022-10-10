@@ -31,10 +31,11 @@ int main(int argc, char* argv[])
 
 	//get links from file
 	if (oParser.WFlag) {
-		Logger::Print(Runtime, "");
+		Logger::Print(Runtime, "Using entered link to get feed");
 		links.push_back(oParser.feedPath.data());
 	}
 	else {
+		Logger::Print(Runtime, "Using file containg links to get feed");
 		const char* fileName = oParser.feedPath.data();
 		std::ifstream file{ fileName };
 		if (!file.is_open()) {
@@ -42,6 +43,7 @@ int main(int argc, char* argv[])
 			return(EXIT_FAILURE);
 		}
 		
+		Logger::Print(Runtime, "Loading links from file");
 		string line;
 		while (std::getline(file, line)) {
 			line = trim(line);
@@ -50,9 +52,11 @@ int main(int argc, char* argv[])
 			links.push_back(line);
 		}
 		file.close();
+		Logger::Print(Runtime, "All links loaded");
 	}
 
 	//run web scraper
+	Logger::Print(Runtime, "Scraping for feed/s");
 	do {
 		string SLink = links.back();
 		links.pop_back();
@@ -61,7 +65,10 @@ int main(int argc, char* argv[])
 		int return_code = WScraper.run(link, 3, 3);
 		std::ofstream outfile{ "outfile.txt" };
 		outfile << WScraper.response.raw();
+		
 		if (return_code != WebScraper::Error::OK) continue;
+
+		
 	} while (!links.empty());
 
 	return(EXIT_SUCCESS);
