@@ -11,9 +11,9 @@ ParsedLink::ParsedLink(const string_view& link) {
 	size_t hostIndex, pathIndex, queryIndex, portIndex;
 	size_t offset, len;
 
-	//order	fiter match_index
+	//order	filter match_index
 	//	|---"://"---|
-	//	1	   ^ hostIndex 
+	//	1	   ^   hostIndex 
 	hostIndex = link.find("://");
 	if (hostIndex == string::npos) hostIndex = 0; else hostIndex += 3;
 	

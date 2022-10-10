@@ -38,7 +38,7 @@ public:
 
 		REDIRECT,
 		
-		CRITICAL_ERROR,/// used only for comparation
+		CRITICAL_ERROR,/// used only to compare types
 		
 		BAD_RESPONSE,
 

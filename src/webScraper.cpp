@@ -31,7 +31,7 @@ public:
 
 		//check connection
 		if (BIO_do_connect(bio) <= 0) {
-			Logger::Print(RError,"Durning connection check to '%s'", getCon());
+			Logger::Print(RError,"During connection check to '%s'", getCon());
 			return WebScraper::Error::CONNECTION_ERROR;
 		}
 
@@ -45,7 +45,7 @@ public:
 
 			//verify certificate
 			if (SSL_get_verify_result(ssl) != X509_V_OK) {
-				Logger::Print(RError,"Error cetificate verification failed for: '%s'", getCon());
+				Logger::Print(RError,"Error certificate verification failed for: '%s'", getCon());
 				return WebScraper::Error::SSL_ERROR;
 			}
 		}
@@ -133,10 +133,10 @@ int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_l
 			Logger::Print(Runtime, "Redirecting to '%s' [%d]", location.c_str(), redirect_counter);
 			continue;
 		}
-		//failed to retrive data
+		//failed to retrieve data
 		i++;
 		if (i < tries) {
-			Logger::Print(Runtime, "Failed to retrive data [%d], retrying ...", i);
+			Logger::Print(Runtime, "Failed to retrieve data [%d], retrying ...", i);
 		}
 	}
 	return return_code;
@@ -180,10 +180,10 @@ int WebScraper::_run(ParsedLink link) {
 	int len = max_len;
 	char buffer[max_len];
 	buffer[max_len] = '\0';
-	//get data lenght from header when aviable
+	//get data length from header when available
 	bool headerLoaded = false;
 	size_t maxDataLenght = -1;
-	//recive data until time out or end of data
+	//receive data until time out or end of data
 	while ((len = BIO_read(wrap.getBio(), buffer, 1024)) > 0) {
 		response.append(buffer, len);
 		if (!headerLoaded) {
@@ -224,23 +224,23 @@ int WebScraper::_run(ParsedLink link) {
 		}
 	}
 
-	//check recived data
+	//check received data
 	if (len <= 0){
 		if (len == 0) {
 			Logger::Print(RError,"Connection closed");
 			return Error::CONNECTION_CLOSED;
 		}else if(BIO_should_retry(wrap.getBio())) {
-			Logger::Print(RError,"Something went wrong while reciving data");
+			Logger::Print(RError,"Something went wrong while receiving data");
 			return Error::RECEIVE_RETRY_ERROR;
 		}else {
-			Logger::Print(RError,"Failed to recive data");
+			Logger::Print(RError,"Failed to receive data");
 			return Error::RECEIVE_ERROR;
 		}
 	}
 	
-	Logger::Print(Runtime,"Data recived");
+	Logger::Print(Runtime,"Data received");
 	Logger::Print(Debug,"Header valid:      %s", Bool2String(response.isHeaderValid()));
-	Logger::Print(Debug,"Loaded data lenght:%5lu/%lu", response.loadedDataLenght(), response.headerDataLenght());
+	Logger::Print(Debug,"Loaded data length:%5lu/%lu", response.loadedDataLenght(), response.headerDataLenght());
 	
 	return Error::OK;
 }

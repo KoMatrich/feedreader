@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 
 	LIBXML_TEST_VERSION	//check libxml version
 
-	//inicialize web scraper
+	//initialize web scraper
 	WebScraper WScraper(oParser.certAddr, oParser.certFile);
 
 	vector<string> links;
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 		links.push_back(oParser.feedPath.data());
 	}
 	else {
-		Logger::Print(Runtime, "Using file containg links to get feed");
+		Logger::Print(Runtime, "Using file that contains links to get feed");
 		const char* fileName = oParser.feedPath.data();
 		std::ifstream file{ fileName };
 		if (!file.is_open()) {

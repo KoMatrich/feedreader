@@ -52,16 +52,16 @@ void optionParser::run(int argc, char* argv[]) {
             fprintf(stderr, "   -c <certfile>\n");
             fprintf(stderr, "       certfile is used for SSL/TLS\n");
             fprintf(stderr, "   -C <certaddr>\n");
-            fprintf(stderr, "       folder where to seach for certfiles\n");
+            fprintf(stderr, "       folder where to search for certfiles\n");
             fprintf(stderr, "   if -c or -C option is used:\n");
             fprintf(stderr, "       then certificates from default storage will be used\n");
             fprintf(stderr, "\n");
             fprintf(stderr, "   -T\n");
-            fprintf(stderr, "       shows time informations for each records (if aviable)\n");
+            fprintf(stderr, "       shows time informations for each records (if available)\n");
             fprintf(stderr, "   -a\n");
-            fprintf(stderr, "       shows authors name or email for each record (if aviable)\n");
+            fprintf(stderr, "       shows authors name or email for each record (if available)\n");
             fprintf(stderr, "   -u\n");
-            fprintf(stderr, "       shows asociated URL for each record (if aviable)\n");
+            fprintf(stderr, "       shows associated URL for each record (if available)\n");
             exit(EXIT_SUCCESS);
         case ':':
             fprintf(stderr, "option needs a value");

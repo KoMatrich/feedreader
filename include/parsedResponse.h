@@ -11,11 +11,11 @@ public:
 	/// </summary>
 	void append(const char* buffer,const size_t buffer_len);
 	/// <summary>
-	/// Checks if header is valid (complete). Doesn't check if all data has been recived.
+	/// Checks if header is valid (complete). Doesn't check if all data has been received.
 	/// </summary>
 	bool isHeaderValid();
 	/// <summary>
-	/// Checks if all data has been recived.
+	/// Checks if all data has been received.
 	/// </summary>
 	bool isDataValid();
 	/// <summary>
@@ -39,11 +39,11 @@ public:
 	/// </summary>
 	const string get(const char* optionName);
 	/// <summary>
-	/// Returns the lenght of data loaded from the response
+	/// Returns the length of data loaded from the response
 	/// </summary>
 	size_t loadedDataLenght();
 	/// <summary>
-	/// Gets data lenght from header
+	/// Gets data length from header
 	/// </summary>
 	/// <returns>
 	/// string::npos if header is not valid

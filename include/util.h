@@ -26,7 +26,7 @@ inline const char* Bool2String(bool b) {
 }
 
 /// <summary>
-/// trims whitespaces
+/// trims white-spaces
 /// </summary>
 inline std::string trim(const std::string& str)
 {
