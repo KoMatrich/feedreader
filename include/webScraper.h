@@ -4,7 +4,7 @@
 #include <openssl/ssl.h>
 
 #include "parsedLink.h"
-#include "pasedResponse.h"
+#include "parsedResponse.h"
 
 using namespace std;
 
