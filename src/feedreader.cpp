@@ -9,6 +9,7 @@
 #include "inputParser.h"
 #include "parsedLink.h"
 #include "webScraper.h"
+#include <parsedXML.h>
 
 int main(int argc, char* argv[])
 {
@@ -23,6 +24,8 @@ int main(int argc, char* argv[])
 	}
 
 	Logger::Print(Debug, "%s", OpenSSL_version(OPENSSL_VERSION));
+
+	LIBXML_TEST_VERSION	//check libxml version
 
 	//inicialize web scraper
 	WebScraper WScraper(oParser.certAddr, oParser.certFile);
@@ -63,12 +66,9 @@ int main(int argc, char* argv[])
 
 		ParsedLink link{ SLink };
 		int return_code = WScraper.run(link, 3, 3);
-		std::ofstream outfile{ "outfile.txt" };
-		outfile << WScraper.response.raw();
 		
 		if (return_code != WebScraper::Error::OK) continue;
-
-		
+		ParsedXML xml{WScraper.response.dat()};
 	} while (!links.empty());
 
 	return(EXIT_SUCCESS);
