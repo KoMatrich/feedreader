@@ -135,11 +135,16 @@ int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_l
 		}
 		//failed to retrieve data
 		i++;
-		if (i < tries) {
+		if (i <= tries) {
 			Logger::Print(Runtime, "Failed to retrieve data [%d], retrying ...", i);
 		}
 	}
 	return return_code;
+}
+
+void append2Request(string& request, string text) {
+	Logger::Print(Runtime, "\t%s", text.c_str());
+	request += text + "\r\n";
 }
 
 int WebScraper::_run(ParsedLink link) {	
@@ -155,14 +160,12 @@ int WebScraper::_run(ParsedLink link) {
 
 	//send request
 	Logger::Print(Runtime,"Connected sending GET request:");
-	string request, line;
-	line = "GET " + link.path + link.query + " HTTP/1.1";
-	Logger::Print(Runtime, "\t%s", line.c_str());
-	request += line + "\r\n";
-	line = "Host: " + link.host;
-	Logger::Print(Runtime, "\t%s", line.c_str());
-	request += line + "\r\n";
-	request += "\r\n\r\n";
+	
+	string request;
+	append2Request(request, "GET " + link.path + link.query + " HTTP/1.1");
+	append2Request(request, "Host: " + link.host);
+	append2Request(request, "Accept: */*");
+	append2Request(request, "\r\n");
 	
 	if (BIO_write(wrap.getBio(), request.c_str(), request.length()) < 0) {
 		if (BIO_should_retry(wrap.getBio())) {
@@ -182,13 +185,13 @@ int WebScraper::_run(ParsedLink link) {
 	buffer[max_len] = '\0';
 	//get data length from header when available
 	bool headerLoaded = false;
-	size_t maxDataLenght = -1;
+	size_t expectedDataLenght = -1;
 	//receive data until time out or end of data
 	while ((len = BIO_read(wrap.getBio(), buffer, 1024)) > 0) {
 		response.append(buffer, len);
 		if (!headerLoaded) {
 			if (response.isHeaderValid()) {
-				//Logger::Print(Debug, "Response:\n%s", response.raw());
+				//Logger::Print(Debug, "Response:\n%s", response.getAll());
 				int r = response.getCode();
 				switch (r)
 				{
@@ -212,16 +215,11 @@ int WebScraper::_run(ParsedLink link) {
 				}
 				
 				Logger::Print(Runtime, "Fetching rest of data");
-				
 				headerLoaded = true;
-				maxDataLenght = response.headerDataLenght();
 			}
 		}
-
-		if (maxDataLenght <= response.loadedDataLenght()) {
-			//all data has been loaded
-			break;
-		}
+		
+		if (response.isDataValid()) break;
 	}
 
 	//check received data
@@ -240,7 +238,7 @@ int WebScraper::_run(ParsedLink link) {
 	
 	Logger::Print(Runtime,"Data received");
 	Logger::Print(Debug,"Header valid:      %s", Bool2String(response.isHeaderValid()));
-	Logger::Print(Debug,"Loaded data length:%5lu/%lu", response.loadedDataLenght(), response.headerDataLenght());
+	Logger::Print(Debug,"Loaded data length:%5lu", response.loadedDataLenght());
 	
 	return Error::OK;
 }

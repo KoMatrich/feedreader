@@ -14,17 +14,26 @@ void PasedResponse::append(const char* buffer,const size_t buffer_len)
 
 bool PasedResponse::isHeaderValid()
 {
+	if (validHeader) return true;
+	
 	size_t endOfHeader = headerLenght();
 	return endOfHeader == string::npos ? false : true;
 }
 
 bool PasedResponse::isDataValid()
 {
-	size_t endOfHeader = headerLenght();
-	if (endOfHeader == string::npos) return false;
-	size_t dataLenght = headerDataLenght();
-	if (dataLenght == string::npos) return false;
-	return rawStorage.length() - endOfHeader == dataLenght;
+	if (validData) return true;
+	if (!validHeader) return false;
+	
+	size_t dataLenght = loadedDataLenght();
+	if (dataLenght == string::npos)return false;
+	const char* pattern = "0\r\n";
+	size_t index = rawStorage.find(pattern,dataLenght-strlen(pattern));
+	string data = rawStorage.substr(dataLenght, 5);
+	if (index != string::npos) {
+		return true;
+	}
+	return index == string::npos ? false : true;
 }
 
 uint PasedResponse::getCode() {
@@ -61,21 +70,6 @@ size_t PasedResponse::loadedDataLenght(){
 	size_t endOfHeader = headerLenght();
 	if (endOfHeader == string::npos) return 0;
 	return rawStorage.length() - endOfHeader;
-}
-
-size_t PasedResponse::headerDataLenght()
-{
-	string data = get("Content-Length");
-	if (data == "") return string::npos;
-		
-	try
-	{
-		return stoi(data.c_str());
-	}
-	catch (const std::exception&)
-	{
-		return string::npos;
-	}
 }
 
 size_t PasedResponse::headerLenght()

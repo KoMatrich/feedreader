@@ -25,13 +25,13 @@ public:
 	/// <summary>
 	/// Returns pointer to whole request
 	/// </summary>
-	const char* raw() {
+	const char* getAll() {
 		return rawStorage.c_str();
 	}
 	/// <summary>
 	/// Returns pointer to data of request
 	/// </summary>
-	const char* dat() {
+	const char* getData() {
 		return rawStorage.c_str() + headerLenght();
 	}
 	/// <summary>
@@ -48,17 +48,12 @@ public:
 	/// <returns>
 	/// string::npos if header is not valid
 	/// </returns>
-	size_t headerDataLenght();
-	/// <summary>
-	///	Length of header
-	/// </summary>
-	/// <returns>
-	/// string::npos if header is not valid
-	/// </returns>
 	size_t headerLenght();
 	void clear() {
 		rawStorage.clear();
 	}
 private:
+	bool validHeader = false;
+	bool validData = false;
 	string rawStorage{};
 };

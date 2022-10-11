@@ -8,11 +8,25 @@ using namespace std;
 class ParsedXML {
 private:
 	xmlDoc* doc = NULL;
-	xmlNode* root_element = NULL;
-public:
-	ParsedXML(const string_view& link);
+	xmlNode* root = NULL;
 
-	bool isValid() { return validate(); };
-private:
-	bool validate();
+	bool valid;
+public:
+	ParsedXML(const string_view& xml);
+	~ParsedXML();
+
+	bool isValid() { return valid; };
+};
+
+/// <summary>
+/// Just initializes xmlParser and deinitializes when out of scope
+/// </summary>
+class XMLParserKeeper {
+public:
+	XMLParserKeeper() {
+		xmlInitParser();
+	}
+	~XMLParserKeeper(){
+		xmlCleanupParser();
+	}
 };
