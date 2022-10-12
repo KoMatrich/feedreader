@@ -45,7 +45,7 @@ ParsedXMLFeed::ParsedXMLFeed(const string_view& xml)
 	if (isSame(root->name, "rss")) {
 		type = RSS;
 	}
-	else if (isSame(root->name, "atom")) {
+	else if (isSame(root->name, "feed")) {
 		type = ATOM;
 	}
 	else {
@@ -56,7 +56,22 @@ ParsedXMLFeed::ParsedXMLFeed(const string_view& xml)
 	valid = true;
 }
 
-void ParsedXMLFeed::printAsFeed()
+void ParsedXMLFeed::printAsFeed(bool l, bool a, bool t)
+{
+	switch (type)
+	{
+	case RSS:
+		printRSS(l, a, t);
+		break;
+	case ATOM:
+		printATOM(l, a, t);
+		break;
+	default:
+		break;
+	}
+}
+
+void ParsedXMLFeed::printRSS(bool l, bool a, bool t)
 {
 	for (auto ch = root->children; ch != nullptr; ch = ch->next) {
 		if (!isSame(ch->name, "channel"))continue;
@@ -80,8 +95,35 @@ void ParsedXMLFeed::printAsFeed()
 						f.addPubDate(getContent(s)); continue;
 					}
 				}
-				f.print(true, true, true);
+				f.print(l, a, t);
 			}
+		}
+	}
+}
+
+void ParsedXMLFeed::printATOM(bool l, bool a, bool t)
+{
+	for (auto e = root->children; e != nullptr; e = e->next) {
+		if (isSame(e->name, "title")) {
+			printf("*** %s ***\n", getContent(e).data()); continue;
+		}
+		if (isSame(e->name, "entry")) {
+			Feed f;
+			for (auto s = e->children; s != nullptr; s = s->next) {
+				if (isSame(s->name, "title")) {
+					f.addTitle(getContent(s)); continue;
+				}
+				if (isSame(s->name, "author")) {
+					f.addAuthor(getContent(s)); continue;
+				}
+				if (isSame(s->name, "link")) {
+					continue;
+				}
+				if (isSame(s->name, "pubDate")) {
+					f.addPubDate(getContent(s)); continue;
+				}
+			}
+			f.print(l, a, t);
 		}
 	}
 }

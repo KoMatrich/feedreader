@@ -114,6 +114,8 @@ int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_l
 		return_code = _run(link);
 		//exit from loop when done
 		if (return_code == Error::OK)break;
+		//check for connection error when secured and try again
+		//TODO
 		//check for critical errors
 		if (return_code > Error::CRITICAL_ERROR)break;
 		//check for redirect

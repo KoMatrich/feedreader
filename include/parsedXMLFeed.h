@@ -18,13 +18,15 @@ private:
 
 	bool valid;
 	xmlType type;
+	void printRSS(bool l, bool a, bool t);
+	void printATOM(bool l, bool a, bool t);
 public:
 	ParsedXMLFeed(const string_view& xml);
 	~ParsedXMLFeed();
 
 	bool isValid() { return valid; };
 
-	void printAsFeed();
+	void printAsFeed(bool l, bool a, bool t);
 };
 
 /// <summary>
