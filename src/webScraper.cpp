@@ -124,7 +124,7 @@ int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_l
 				return_code = Error::REDIRECT_LIMIT;
 				break;
 			}
-			string location = response.get("Location");
+			string location = response.getHeader("Location");
 			link = ParsedLink{ location };
 			if (link.host.empty()) {
 				Logger::Print(RError, "Failed to parse redirect location");
@@ -183,7 +183,7 @@ int WebScraper::_run(ParsedLink link) {
 	int len = max_len;
 	char buffer[max_len];
 	buffer[max_len] = '\0';
-	//get data length from header when available
+	//getHeader data length from header when available
 	bool headerLoaded = false;
 	size_t expectedDataLenght = -1;
 	//receive data until time out or end of data
@@ -238,7 +238,7 @@ int WebScraper::_run(ParsedLink link) {
 	
 	Logger::Print(Runtime,"Data received");
 	Logger::Print(Debug,"Header valid:      %s", Bool2String(response.isHeaderValid()));
-	Logger::Print(Debug,"Loaded data length:%5lu", response.loadedDataLenght());
+	Logger::Print(Debug,"Loaded data length:%5lu", response.getLoadedDataLenght());
 	
 	return Error::OK;
 }

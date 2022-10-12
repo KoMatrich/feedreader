@@ -32,28 +32,35 @@ public:
 	/// Returns pointer to data of request
 	/// </summary>
 	const char* getData() {
-		return rawStorage.c_str() + headerLenght();
+		return rawStorage.c_str() + getHeaderLenght();
 	}
 	/// <summary>
 	/// Returns data from header
 	/// </summary>
-	const string get(const char* optionName);
+	const string getHeader(const char* optionName);
 	/// <summary>
 	/// Returns the length of data loaded from the response
 	/// </summary>
-	size_t loadedDataLenght();
+	size_t getLoadedDataLenght();
 	/// <summary>
 	/// Gets data length from header
 	/// </summary>
 	/// <returns>
 	/// string::npos if header is not valid
 	/// </returns>
-	size_t headerLenght();
+	size_t getHeaderLenght();
+	/// <summary>
+	/// Resets the response
+	/// </summary>
 	void clear() {
 		rawStorage.clear();
+		validHeader = false;
+		validData = false;
+		segmented = false;
 	}
 private:
-	bool validHeader = false;
-	bool validData = false;
+	size_t predictDataLenght();
+	bool validHeader, validData, segmented;
+	size_t predictedDataLenght = 0;
 	string rawStorage{};
 };

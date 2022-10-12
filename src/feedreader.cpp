@@ -9,7 +9,7 @@
 #include "inputParser.h"
 #include "parsedLink.h"
 #include "webScraper.h"
-#include <parsedXML.h>
+#include <parsedXMLFeed.h>
 
 int main(int argc, char* argv[])
 {
@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 	
 	//input processing part and initialization
 	{
-		//get certificates
+		//getHeader certificates
 		if (OPENSSL_init_ssl(OPENSSL_INIT_SSL_DEFAULT, nullptr) < 0)
 		{
 			Logger::Print(RError, "OPENSSL_init_ssl failed");
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 		Logger::Print(Debug, "%s", OpenSSL_version(OPENSSL_VERSION));
 		LIBXML_TEST_VERSION;//check libxml version
 
-		//get links from file
+		//getHeader links from file
 		if (oParser.WFlag) {
 			Logger::Print(Runtime, "Using entered link to get feed");
 			links.push_back(oParser.feedPath.data());
@@ -73,11 +73,10 @@ int main(int argc, char* argv[])
 			ParsedLink link{ SLink };
 			int return_code = WScraper.run(link, 3, 3);
 			if (return_code != WebScraper::Error::OK) continue;
-			ofstream output{ "out.txt" };
-			output << WScraper.response.getData() << endl;
-			output.close();
-			break;
-			ParsedXML xml{ WScraper.response.getData() };
+			ParsedXMLFeed xml{ WScraper.response.getData() };
+			if (!xml.isValid()) continue;
+			xml.printAsFeed();
+			
 		} while (!links.empty());
 	}
 	return(EXIT_SUCCESS);

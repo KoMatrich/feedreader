@@ -49,8 +49,6 @@ public:
 		SEND_ERROR,
 		RECEIVE_ERROR,
 
-		HEADER_ERROR,
-		
 		REDIRECT_LIMIT
 	};
 };
