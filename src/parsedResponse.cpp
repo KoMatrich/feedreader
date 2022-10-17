@@ -61,8 +61,10 @@ size_t PasedResponse::predictDataLenght() {
 	}
 }
 
-void RemoveEndCode() {
-	
+void PasedResponse::RemoveEndCode() {
+	size_t endSeparator = rawStorage.find(SEPARATOR,getHeaderLenght());
+	if (endSeparator == string::npos) return;
+	rawStorage.erase(endSeparator, rawStorage.length()-endSeparator);
 }
 
 bool PasedResponse::isDataValid()
@@ -73,7 +75,9 @@ bool PasedResponse::isDataValid()
 	size_t len = predictDataLenght();
 	validData = getLoadedDataLenght() >= len;
 	
-	RemoveEndCode();
+	if(validData)
+		RemoveEndCode();
+	
 	return validData;
 }
 

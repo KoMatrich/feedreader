@@ -59,6 +59,7 @@ public:
 		segmented = false;
 	}
 private:
+	void RemoveEndCode();
 	size_t predictDataLenght();
 	bool validHeader, validData, segmented;
 	size_t predictedDataLenght = 0;
