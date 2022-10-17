@@ -18,6 +18,21 @@ const string_view getContent(const xmlNode* parent)
 	return string_view{ (const char*) parent->content };
 }
 
+const string_view getAtributeContent(const xmlNode* parent, const char* atribute)
+{
+	while (parent->children != nullptr) {
+		parent = parent->children;
+	}
+	xmlAttr* attribute = parent->properties;
+	while (attribute != nullptr) {
+		if (isSame(attribute->name, atribute)) {
+			return string_view{ (const char*)attribute->children->content };
+		}
+		attribute = attribute->next;
+	}
+	return string_view{ "" };
+}
+
 ParsedXMLFeed::ParsedXMLFeed(const string_view& xml)
 {
 	//https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlParserOption
@@ -105,12 +120,10 @@ void ParsedXMLFeed::printRSS(bool l, bool a, bool t)
 
 void ParsedXMLFeed::printATOM(bool l, bool a, bool t)
 {
+	Feed def;
 	for (auto e = root->children; e != nullptr; e = e->next) {
-		if (isSame(e->name, "title")) {
-			printf("*** %s ***\n", getContent(e).data()); continue;
-		}
 		if (isSame(e->name, "entry")) {
-			Feed f;
+			Feed f = def;
 			for (auto s = e->children; s != nullptr; s = s->next) {
 				if (isSame(s->name, "title")) {
 					f.addTitle(getContent(s)); continue;
@@ -119,13 +132,32 @@ void ParsedXMLFeed::printATOM(bool l, bool a, bool t)
 					f.addAuthor(getContent(s)); continue;
 				}
 				if (isSame(s->name, "link")) {
-					continue;
+					f.addLink(getAtributeContent(s, "href")); continue;
 				}
-				if (isSame(s->name, "pubDate")) {
+				if (isSame(s->name, "updated")) {
 					f.addPubDate(getContent(s)); continue;
 				}
 			}
 			f.print(l, a, t);
+			continue;
+		}
+		
+		if (isSame(e->name, "title")) {
+			printf("*** %s ***\n", getContent(e).data()); continue;
+		}
+		
+		//get default values from header
+		if (isSame(e->name, "title")) {
+			def.addTitle(getContent(e)); continue;
+		}
+		if (isSame(e->name, "author")) {
+			def.addAuthor(getContent(e)); continue;
+		}
+		if (isSame(e->name, "link")) {
+			def.addLink(getAtributeContent(e, "href")); continue;
+		}
+		if (isSame(e->name, "updated")) {
+			def.addPubDate(getContent(e)); continue;
 		}
 	}
 }
