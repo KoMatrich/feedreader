@@ -12,7 +12,7 @@ class WebScraper {
 private:
 	SSL_CTX* ctx;
 
-	int _run(ParsedLink link);
+	int _run(ParsedLink link, bool secured);
 public:
 	WebScraper(const string_view certAddr,const string_view certFile);
 	~WebScraper()

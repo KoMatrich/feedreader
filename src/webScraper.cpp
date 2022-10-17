@@ -111,13 +111,21 @@ int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_l
 		//clear response
 		response.clear();
 		//run web scrapper
-		return_code = _run(link);
+		bool secured = link.protocol == "https://";
+		return_code = _run(link, secured);
 		//exit from loop when done
 		if (return_code == Error::OK)break;
 		//check for connection error when secured and try again
-		//TODO
+		if (return_code == Error::CONNECTION_ERROR && secured) {
+			link.protocol = "http://";
+			Logger::Print(Runtime, "Failed to connect using SSL, trying HTTP");
+			continue;
+		}
 		//check for critical errors
-		if (return_code > Error::CRITICAL_ERROR)break;
+		if (return_code > Error::CRITICAL_ERROR) {
+			Logger::Print(RError, "Establishing connection to '%s' failed", link.getLink());
+			break;
+		}
 		//check for redirect
 		if (return_code == Error::REDIRECT) {
 			//check for redirect limit
@@ -149,8 +157,7 @@ void append2Request(string& request, string text) {
 	request += text + "\r\n";
 }
 
-int WebScraper::_run(ParsedLink link) {	
-	bool secured = link.protocol == "https://";
+int WebScraper::_run(ParsedLink link, bool secured) {
 	link.port = link.port == "" ? (secured ? ":443" : ":80") : link.port;
 
 	Wrapper wrap;

@@ -3,6 +3,8 @@
 #include "util.h"
 #include <cstring>
 
+#define DEBUG 1
+
 bool isSame(const xmlChar* a, const char* b) {
 	return strcmp((const char*)a, b) == 0;
 }

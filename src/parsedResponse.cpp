@@ -61,6 +61,10 @@ size_t PasedResponse::predictDataLenght() {
 	}
 }
 
+void RemoveEndCode() {
+	
+}
+
 bool PasedResponse::isDataValid()
 {
 	if (validData) return true;
@@ -68,6 +72,8 @@ bool PasedResponse::isDataValid()
 	
 	size_t len = predictDataLenght();
 	validData = getLoadedDataLenght() >= len;
+	
+	RemoveEndCode();
 	return validData;
 }
 
@@ -89,7 +95,7 @@ uint PasedResponse::getCode() {
 
 const string PasedResponse::getHeader(const char* optionName)
 {
-	string prefix = "\r\n";
+	string prefix = EOL;
 	prefix += optionName;
 	prefix += ": ";
 	

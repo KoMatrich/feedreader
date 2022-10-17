@@ -74,10 +74,7 @@ int main(int argc, char* argv[])
 			int return_code = WScraper.run(link, 3, 3);
 			if (return_code != WebScraper::Error::OK) continue;
 			ParsedXMLFeed xml{ WScraper.response.getData() };
-			if (!xml.isValid()) {
-				Logger::Print(RError, "Failed to parse XML");
-				continue;
-			}
+			if (!xml.isValid())	continue;
 			xml.printAsFeed(true,true,true);
 			//xml.printAsFeed(oParser.uFlag, oParser.aFlag, oParser.TFlag);
 			
