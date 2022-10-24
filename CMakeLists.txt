@@ -1,4 +1,4 @@
-﻿# CMakeList.txt : CMake project for hinfosvc
+﻿# CMakeList.txt : CMake project for feedreader
 
 cmake_minimum_required (VERSION 3.16)
 
@@ -30,3 +30,5 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE ${PCAP_LIBRARY})
 # Add the header file directory
 target_include_directories("${PROJECT_NAME}" PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories("${PROJECT_NAME}" PUBLIC ${PCAP_ROOT_DIR}/Include)
+
+add_subdirectory(tests)

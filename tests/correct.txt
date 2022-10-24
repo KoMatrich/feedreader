@@ -1,0 +1,4 @@
+#The register
+https://www.theregister.co.uk/hardware/headlines.atom
+#xkcd
+https://xkcd.com/atom.xml

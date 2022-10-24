@@ -6,6 +6,7 @@ using namespace std;
 
 class PasedResponse {
 public:
+	~PasedResponse();
 	/// <summary>
 	/// Adds data to the response
 	/// </summary>
@@ -59,9 +60,16 @@ public:
 		segmented = false;
 	}
 private:
+	/// <summary>
+	/// Removes return code if available at end of response
+	/// </summary>
 	void RemoveEndCode();
 	size_t predictDataLenght();
 	bool validHeader, validData, segmented;
 	size_t predictedDataLenght = 0;
 	string rawStorage{};
+
+#ifdef DEBUG
+	string debug{};
+#endif // DEBUG
 };

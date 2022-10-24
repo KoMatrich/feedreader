@@ -1,7 +1,6 @@
 ﻿#include <stdlib.h>
 #include <stdio.h>
 #include <openssl/ssl.h>
-#include <iostream>
 #include <util.h>
 #include <vector>
 #include <fstream>
@@ -9,7 +8,7 @@
 #include "inputParser.h"
 #include "parsedLink.h"
 #include "webScraper.h"
-#include <parsedXMLFeed.h>
+#include "parsedXMLFeed.h"
 
 int main(int argc, char* argv[])
 {

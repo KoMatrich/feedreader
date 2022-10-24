@@ -25,13 +25,17 @@ public:
 
 		if (secured) {
 			BIO_get_ssl(bio, &ssl);
+			if (ssl == NULL) {
+				Logger::Print(RError, "Can't locate ssl pointer");
+				return WebScraper::Error::SSL_ERROR;
+			}
 			SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
 			BIO_set_conn_hostname(bio, getCon());
 		}
 
 		//check connection
 		if (BIO_do_connect(bio) <= 0) {
-			Logger::Print(RError,"During connection check to '%s'", getCon());
+			Logger::Print(RError,"During connection to '%s'", getCon());
 			return WebScraper::Error::CONNECTION_ERROR;
 		}
 

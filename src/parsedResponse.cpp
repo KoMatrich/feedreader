@@ -1,6 +1,7 @@
 #include "parsedResponse.h"
 
 #include <cstring>
+#include <fstream>
 
 #include "util.h"
 
@@ -9,11 +10,23 @@ const char* EOL = "\r\n";
 //htpp response separator
 const char* SEPARATOR = "\r\n\r\n";
 
+PasedResponse::~PasedResponse()
+{
+#ifdef DEBUG
+	ofstream f{ "ParsedResponseDebug.txt" };
+	f.write(debug.c_str(), debug.length());
+	f.close();
+#endif // DEBUG
+}
+
 void PasedResponse::append(const char* buffer,const size_t buffer_len)
 {
 	for (size_t i = 0; i < buffer_len; i++) {
 		if(buffer[i] == '\0')break;
 		rawStorage += buffer[i];
+#ifdef DEBUG
+		debug += buffer[i];
+#endif // DEBUG
 	}
 }
 
@@ -48,11 +61,14 @@ size_t PasedResponse::predictDataLenght() {
 				//find data length info in data and remove it
 				size_t dataIndex = getHeaderLenght() + predictedDataLenght;
 				size_t endOfLine = rawStorage.find(EOL, dataIndex);
+				if (endOfLine == string::npos) return predictedDataLenght;
+
 				string data = rawStorage.substr(dataIndex, endOfLine - dataIndex);
 				if (data.empty()) return predictedDataLenght;
 				
 				predictedDataLenght += std::stoi(data, 0, 16);
 				rawStorage.erase(dataIndex, endOfLine - dataIndex + strlen(EOL));
+				predictedDataLenght += strlen(EOL);
 			}
 		}
 
