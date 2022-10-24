@@ -75,9 +75,9 @@ int main(int argc, char* argv[])
 			if (return_code != WebScraper::Error::OK) continue;
 			ParsedXMLFeed xml{ WScraper.response.getData() };
 			if (!xml.isValid())	continue;
-			xml.printAsFeed(true,true,true);
+			xml.printAsFeed(oParser.uFlag , oParser.aFlag, oParser.TFlag);
 			//xml.printAsFeed(oParser.uFlag, oParser.aFlag, oParser.TFlag);
-			
+			if (!links.empty() && !oParser.WFlag)printf("\n");
 		} while (!links.empty());
 	}
 	return(EXIT_SUCCESS);
