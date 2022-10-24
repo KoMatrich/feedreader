@@ -4,10 +4,11 @@
 #include <stdio.h>
 #include <string>
 #include <unistd.h>
+#include "util.h"
 
 void optionParser::run(int argc, char* argv[]) {
     if (argc <= 1) {
-        fprintf(stderr, "Missing options. Use \"-h\" for help.");
+        Logger::Print(RError,"Missing options. Use \"-h\" for help.");
         exit(EXIT_FAILURE);
     }
 
@@ -18,7 +19,7 @@ void optionParser::run(int argc, char* argv[]) {
 	
     int opt;
     //https://www.man7.org/linux/man-pages/man3/getopt.3.html
-    while ((opt = getopt(argc, argv, ":f:c:CTauh")) != -1) {
+    while ((opt = getopt(argc, argv, "f:c:C:Tauh")) != -1) {
         switch (opt) {
         case 'f':
             feedPath = optarg;
@@ -64,11 +65,15 @@ void optionParser::run(int argc, char* argv[]) {
             fprintf(stderr, "       shows associated URL for each record (if available)\n");
             exit(EXIT_SUCCESS);
         case ':':
-            fprintf(stderr, "option needs a value");
+            Logger::Print(RError, "option needs a value");
             exit(EXIT_FAILURE);
         case '?':
-            fprintf(stderr, "unknown option: %c", optopt);
+            Logger::Print(RError, "unknown option: %c", optopt);
             exit(EXIT_FAILURE);
         };
+    }
+    if (feedPath.empty()) {
+        Logger::Print(RError, "missing feed URL");
+        exit(EXIT_FAILURE);
     }
 }
