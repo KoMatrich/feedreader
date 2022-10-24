@@ -19,7 +19,4 @@ set_tests_properties(atom_short PROPERTIES WILL_FAIL false)
 add_test(NAME rss_short COMMAND ${PROJECT_NAME} "http://martinkocich.jecool.net/rss.xml")
 set_tests_properties(rss_short PROPERTIES WILL_FAIL false)
 
-add_test(NAME correct_file COMMAND ${PROJECT_NAME} "-f correct.txt")
-set_tests_properties(correct_file PROPERTIES WILL_FAIL false)
-
 set_tests_properties(PROPERTIES TIMEOUT 30)
