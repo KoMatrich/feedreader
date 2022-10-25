@@ -19,7 +19,7 @@ public:
 
 		if (bio == nullptr)
 		{
-			Logger::Print(RError,"Failed to create BIO object for '%s'", getCon());
+			Logger::Print(RError, "Failed to create BIO object for '%s'", getCon());
 			return WebScraper::Error::CONNECTION_ERROR;
 		}
 
@@ -35,7 +35,7 @@ public:
 
 		//check connection
 		if (BIO_do_connect(bio) <= 0) {
-			Logger::Print(RError,"During connection to '%s'", getCon());
+			Logger::Print(RError, "During connection to '%s'", getCon());
 			return WebScraper::Error::CONNECTION_ERROR;
 		}
 
@@ -43,13 +43,13 @@ public:
 		if (secured) {
 			//certificate handshake
 			if (BIO_do_handshake(bio) != 1) {
-				Logger::Print(RError,"Error establishing SSL connection to: '%s'", getCon());
+				Logger::Print(RError, "Error establishing SSL connection to: '%s'", getCon());
 				return WebScraper::Error::SSL_ERROR;
 			}
 
 			//verify certificate
 			if (SSL_get_verify_result(ssl) != X509_V_OK) {
-				Logger::Print(RError,"Error certificate verification failed for: '%s'", getCon());
+				Logger::Print(RError, "Error certificate verification failed for: '%s'", getCon());
 				return WebScraper::Error::SSL_ERROR;
 			}
 		}
@@ -82,35 +82,30 @@ private:
 WebScraper::WebScraper(string_view certAddr, string_view certFile) {
 	if (certAddr.empty() && certFile.empty()) {
 		ctx = SSL_CTX_new(SSLv23_client_method());
-		if(!ctx)
+		if (!ctx)
 		{
-			Logger::Print(RError,"Error: SSL_CTX_new failed");
+			Logger::Print(RError, "SSL_CTX_new failed");
 			exit(EXIT_FAILURE);
 		}
-		
+
 		if (SSL_CTX_set_default_verify_paths(ctx) != 1) {
-			Logger::Print(RError,"Error: SSL_CTX_set_default_verify_paths failed");
+			Logger::Print(RError, "SSL_CTX_set_default_verify_paths failed");
 			exit(EXIT_FAILURE);
 		}
 	}
-	if (!certAddr.empty()) {
-		if (SSL_CTX_load_verify_locations(ctx, nullptr, certAddr.data()) != 1) {
-			Logger::Print(RError,"Error loading certification folder");
+	const char* file = certFile.size() > 0 ? certFile.data() : nullptr;
+	const char* adr = certAddr.size() > 0 ? certAddr.data() : nullptr;
+	if(file != nullptr || adr != nullptr)
+		if (SSL_CTX_load_verify_locations(ctx, file, adr) != 1) {
+			Logger::Print(RError, "SSL_CTX_load_verify_locations failed");
 			exit(EXIT_FAILURE);
 		}
-	}
-	if (!certFile.empty()) {
-		if (SSL_CTX_load_verify_locations(ctx, nullptr, certFile.data()) != 1) {
-			Logger::Print(RError,"Error loading certification file");
-			exit(EXIT_FAILURE);
-		}
-	}
 };
 
 int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_limit) {
 	int return_code;
 	uint redirect_counter = 0;
-	
+
 	for (uint i = 0; i <= tries;) {
 		//clear response
 		response.clear();
@@ -127,7 +122,7 @@ int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_l
 		}
 		//check for critical errors
 		if (return_code > Error::CRITICAL_ERROR) {
-			Logger::Print(RError, "Establishing connection to '%s' failed", link.getLink());
+			Logger::Print(RError, "Establishing connection to '%s' failed", link.getLink().c_str());
 			break;
 		}
 		//check for redirect
@@ -165,40 +160,39 @@ int WebScraper::_run(ParsedLink link, bool secured) {
 	link.port = link.port == "" ? (secured ? ":443" : ":80") : link.port;
 
 	Wrapper wrap;
-	Logger::Print(Runtime,"Connecting to '%s'", link.getLink().c_str());
+	Logger::Print(Runtime, "Connecting to '%s'", link.getLink().c_str());
 	int return_code = wrap.setup(secured, ctx, link.getLink());
 	if (return_code != 0) {
 		return return_code;
 	}
 
 	//send request
-	Logger::Print(Runtime,"Connected sending GET request:");
-	
+	Logger::Print(Runtime, "Connected sending GET request:");
+
 	string request;
 	append2Request(request, "GET " + link.path + link.query + " HTTP/1.1");
 	append2Request(request, "Host: " + link.host);
 	append2Request(request, "Accept: */*");
 	append2Request(request, "\r\n");
-	
+
 	if (BIO_write(wrap.getBio(), request.c_str(), request.length()) < 0) {
 		if (BIO_should_retry(wrap.getBio())) {
-			Logger::Print(RError,"While sending request");
+			Logger::Print(RError, "While sending request");
 			return Error::SEND_RETRY_ERROR;
-		}else {
-			Logger::Print(RError,"Failed to send request");
+		}
+		else {
+			Logger::Print(RError, "Failed to send request");
 			return Error::SEND_ERROR;
 		}
 	}
-	
-	Logger::Print(Runtime,"GET request sent, waiting for response");
+
+	Logger::Print(Runtime, "GET request sent, waiting for response");
 	//receive response
 	const uint max_len = 1024;
 	int len = max_len;
-	char buffer[max_len];
-	buffer[max_len] = '\0';
+	char buffer[max_len] = "";
 	//getHeader data length from header when available
 	bool headerLoaded = false;
-	size_t expectedDataLenght = -1;
 	//receive data until time out or end of data
 	while ((len = BIO_read(wrap.getBio(), buffer, 1024)) > 0) {
 		response.append(buffer, len);
@@ -226,32 +220,34 @@ int WebScraper::_run(ParsedLink link, bool secured) {
 					Logger::Print(RError, "Revived bad response [%d]", r);
 					return Error::BAD_RESPONSE;
 				}
-				
+
 				Logger::Print(Runtime, "Fetching rest of data");
 				headerLoaded = true;
 			}
 		}
-		
+
 		if (response.isDataValid()) break;
 	}
 
 	//check received data
-	if (len <= 0){
+	if (len <= 0) {
 		if (len == 0) {
-			Logger::Print(RError,"Connection closed");
+			Logger::Print(RError, "Connection closed");
 			return Error::CONNECTION_CLOSED;
-		}else if(BIO_should_retry(wrap.getBio())) {
-			Logger::Print(RError,"Something went wrong while receiving data");
+		}
+		else if (BIO_should_retry(wrap.getBio())) {
+			Logger::Print(RError, "Something went wrong while receiving data");
 			return Error::RECEIVE_RETRY_ERROR;
-		}else {
-			Logger::Print(RError,"Failed to receive data");
+		}
+		else {
+			Logger::Print(RError, "Failed to receive data");
 			return Error::RECEIVE_ERROR;
 		}
 	}
-	
-	Logger::Print(Runtime,"Data received");
-	Logger::Print(Debug,"Header valid:      %s", Bool2String(response.isHeaderValid()));
-	Logger::Print(Debug,"Loaded data length:%5lu", response.getLoadedDataLenght());
-	
+
+	Logger::Print(Runtime, "Data received");
+	Logger::Print(Debug, "Header valid:      %s", Bool2String(response.isHeaderValid()));
+	Logger::Print(Debug, "Loaded data length:%5lu", response.getLoadedDataLenght());
+
 	return Error::OK;
 }

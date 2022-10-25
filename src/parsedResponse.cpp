@@ -100,7 +100,7 @@ bool PasedResponse::isDataValid()
 uint PasedResponse::getCode() {
 	const char* prefix = " ";
 	size_t codeIndex = rawStorage.find(prefix) + strlen(prefix);
-	if (codeIndex == string::npos) -1;
+	if (codeIndex == string::npos) return -1;
 	size_t codeEndIndex = rawStorage.find(" ", codeIndex);
 	string codeS = rawStorage.substr(codeIndex, codeEndIndex - codeIndex);
 	try
