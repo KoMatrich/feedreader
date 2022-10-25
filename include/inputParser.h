@@ -1,4 +1,5 @@
 #pragma once
+#include "plagiat/getopt_b.h"
 #include <string_view>
 
 class optionParser {

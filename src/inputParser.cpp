@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
-#include <unistd.h>
 #include "util.h"
 
 void optionParser::run(int argc, char* argv[]) {
