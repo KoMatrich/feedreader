@@ -80,26 +80,31 @@ private:
 };
 
 WebScraper::WebScraper(string_view certAddr, string_view certFile) {
+	ctx = SSL_CTX_new(SSLv23_client_method());
+	if (!ctx)
+	{
+		Logger::Print(RError, "SSL_CTX_new failed");
+		exit(EXIT_FAILURE);
+	}
+
+	//load certificates
 	if (certAddr.empty() && certFile.empty()) {
-		ctx = SSL_CTX_new(SSLv23_client_method());
-		if (!ctx)
-		{
-			Logger::Print(RError, "SSL_CTX_new failed");
-			exit(EXIT_FAILURE);
-		}
 
 		if (SSL_CTX_set_default_verify_paths(ctx) != 1) {
 			Logger::Print(RError, "SSL_CTX_set_default_verify_paths failed");
 			exit(EXIT_FAILURE);
 		}
 	}
-	const char* file = certFile.size() > 0 ? certFile.data() : nullptr;
-	const char* adr = certAddr.size() > 0 ? certAddr.data() : nullptr;
-	if(file != nullptr || adr != nullptr)
-		if (SSL_CTX_load_verify_locations(ctx, file, adr) != 1) {
-			Logger::Print(RError, "SSL_CTX_load_verify_locations failed");
-			exit(EXIT_FAILURE);
+	else {
+		const char* file = certFile.size() > 0 ? certFile.data() : nullptr;
+		const char* adr = certAddr.size() > 0 ? certAddr.data() : nullptr;
+		if (file != nullptr || adr != nullptr) {
+			if (SSL_CTX_load_verify_locations(ctx, file, adr) != 1) {
+				Logger::Print(RError, "SSL_CTX_load_verify_locations failed");
+				exit(EXIT_FAILURE);
+			}
 		}
+	}
 };
 
 int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_limit) {
