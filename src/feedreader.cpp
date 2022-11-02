@@ -63,20 +63,23 @@ int main(int argc, char* argv[])
 		//initialize web scraper
 		WebScraper WScraper(oParser.certAddr, oParser.certFile);
 
-		//run web scraper
 		Logger::Print(Runtime, "Scraping for feed/s");
 		do {
+			//get link from list
 			string SLink = links.back();
 			links.pop_back();
 
 			ParsedLink link{ SLink };
-			int return_code = WScraper.run(link, 3, 3);
+			//run web scraper
+			int return_code = WScraper.run(link);
 			if (return_code != WebScraper::Error::OK) continue;
+			//parse response to xml
 			ParsedXMLFeed xml{ WScraper.response.getData() };
 			if (!xml.isValid())	continue;
+			//print feed from xml
 			xml.printAsFeed(oParser.uFlag , oParser.aFlag, oParser.TFlag);
-			//xml.printAsFeed(oParser.uFlag, oParser.aFlag, oParser.TFlag);
-			if (!links.empty() && !oParser.WFlag)printf("\n");
+			//print feed separator 
+			if (!links.empty())printf("\n");
 		} while (!links.empty());
 	}
 	return(EXIT_SUCCESS);

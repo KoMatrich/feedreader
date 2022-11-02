@@ -47,7 +47,8 @@ void optionParser::run(int argc, char* argv[]) {
             fprintf(stderr, "\n");
             fprintf(stderr, "   -f <feedfile>\n");
             fprintf(stderr, "       specifies location of input file\n");
-            fprintf(stderr, "       feedfile is formated as Atom or RSS\n");
+            fprintf(stderr, "       which contains URLs separated by new line\n");
+            fprintf(stderr, "       lines starting with '#' will be ignored\n");
             fprintf(stderr, "\n");
             fprintf(stderr, "   -c <certfile>\n");
             fprintf(stderr, "       certfile is used for SSL/TLS\n");
@@ -62,6 +63,8 @@ void optionParser::run(int argc, char* argv[]) {
             fprintf(stderr, "       shows authors name or email for each record (if available)\n");
             fprintf(stderr, "   -u\n");
             fprintf(stderr, "       shows associated URL for each record (if available)\n");
+            fprintf(stderr, "   if at least one from {-T,-a,-u} is used:\n");
+            fprintf(stderr, "       records are separated by additional new line\n");
             exit(EXIT_SUCCESS);
         case ':':
             Logger::Print(RError, "option needs a value");

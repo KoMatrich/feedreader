@@ -145,6 +145,7 @@ int WebScraper::run(ParsedLink link, const size_t tries, const size_t redirect_l
 				return Error::RESPONSE_ERROR;
 			}
 			Logger::Print(Runtime, "Redirecting to '%s' [%d]", location.c_str(), redirect_counter);
+			i = 0;
 			continue;
 		}
 		//failed to retrieve data

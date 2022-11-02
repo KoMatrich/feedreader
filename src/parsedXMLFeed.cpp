@@ -144,8 +144,9 @@ void ParsedXMLFeed::printATOM(bool l, bool a, bool t)
 		
 		if (isSame(e->name, "title")) {
 			printf("*** %s ***\n", getContent(e).data()); continue;
+			def = Feed();
 		}
-		
+
 		//get default values from header
 		if (isSame(e->name, "title")) {
 			def.addTitle(getContent(e)); continue;
