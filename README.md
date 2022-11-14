@@ -17,9 +17,9 @@
 
 ## Požadavky
 
-- cmake
+- cmake - 3.16+
 - make
-- g++
+- g++ - CXX_STANDARD 20
 - libxml2
 - openssl
 
@@ -201,15 +201,15 @@ pro zachovní správného pořadí při tisku.
 
 ## Díky
 
-[Vitěslav Kříž](https://github.com/sprtokiller) za řešení kompatabily getopt na FreeBSD a WIN
+[Vitěslav Kříž](https://github.com/sprtokiller) za řešení kompatabily getopt na FreeBSD a WIN WSL
 
 ## Použitá literatura
 
 [Openssl Implementace](https://developer.ibm.com/tutorials/l-openssl/)
 
-[HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages)
+[HTTP messages](https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages)
 
-[Chuked transfer](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
+[Chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
 
 [Další testovací feedy](https://rss.com/blog/popular-rss-feeds/)
 
